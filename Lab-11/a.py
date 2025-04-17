@@ -1,7 +1,6 @@
 import psycopg2
 import re
 
-# Подключение к базе данных
 conn = psycopg2.connect(
     host="localhost",
     port=5432,
@@ -11,7 +10,6 @@ conn = psycopg2.connect(
 )
 cur = conn.cursor()
 
-# 1. Поиск по шаблону (имя или номер)
 def search_contacts(pattern):
     cur.execute("""
         SELECT * FROM phone_book
@@ -19,7 +17,6 @@ def search_contacts(pattern):
     """, (f"%{pattern}%", f"%{pattern}%"))
     return cur.fetchall()
 
-# 2. Вставка или обновление пользователя
 def insert_or_update_contact(name, number):
     cur.execute("SELECT 1 FROM phone_book WHERE personname = %s", (name,))
     if cur.fetchone():
@@ -28,22 +25,21 @@ def insert_or_update_contact(name, number):
         cur.execute("INSERT INTO phone_book(personname, phonenumber) VALUES(%s, %s)", (name, number))
     conn.commit()
 
-# 3. Массовая вставка с валидацией номера телефона
 def bulk_insert_contacts(names, numbers):
     for name, number in zip(names, numbers):
         insert_or_update_contact(name, number)
 
-# 4. Пагинация (LIMIT и OFFSET)
+
 def get_paginated_contacts(limit, offset):
     cur.execute("SELECT * FROM phone_book ORDER BY id LIMIT %s OFFSET %s", (limit, offset))
     return cur.fetchall()
 
-# 5. Удаление по имени или номеру
+
 def delete_contact_by_identifier(identifier):
     cur.execute("DELETE FROM phone_book WHERE personname = %s OR phonenumber = %s", (identifier, identifier))
     conn.commit()
 
-# Меню выбора операций
+
 if __name__ == "__main__":
     while True:
         print("""
